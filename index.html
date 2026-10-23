@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi Pegawai - Dukcapil Bangkep</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col space-y-2"></div>
+
+    <!-- Header / Navbar -->
+    <header class="bg-blue-900 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-800 p-2.5 rounded-xl border border-blue-700 shadow-inner">
+                    <i class="fa-solid fa-id-card-clip text-2xl text-blue-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight">DUKCAPIL BANGKEP</h1>
+                    <p class="text-xs text-blue-200">Sistem Absensi Pegawai & Kehadiran Online</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4 bg-blue-950/50 px-4 py-2 rounded-xl border border-blue-800/60">
+                <div class="text-right">
+                    <div id="live-clock" class="text-sm font-semibold text-blue-100">00:00:00 WITA</div>
+                    <div id="live-date" class="text-xs text-blue-300">Senin, 01 Januari 2026</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                <div class="p-3 bg-blue-50 text-blue-600 rounded-xl"><i class="fa-solid fa-users text-xl"></i></div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">Total Hadir</p>
+                    <h3 id="stat-total" class="text-xl font-bold text-slate-800">0</h3>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl"><i class="fa-solid fa-user-tie text-xl"></i></div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">PNS</p>
+                    <h3 id="stat-pns" class="text-xl font-bold text-slate-800">0</h3>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><i class="fa-solid fa-user-shield text-xl"></i></div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">PPPK</p>
+                    <h3 id="stat-pppk" class="text-xl font-bold text-slate-800">0</h3>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                <div class="p-3 bg-amber-50 text-amber-600 rounded-xl"><i class="fa-solid fa-user-clock text-xl"></i></div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">Penuh Waktu</p>
+                    <h3 id="stat-penuh" class="text-xl font-bold text-slate-800">0</h3>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-4 col-span-2 md:col-span-1">
+                <div class="p-3 bg-purple-50 text-purple-600 rounded-xl"><i class="fa-solid fa-user-gear text-xl"></i></div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">PPPK PW</p>
+                    <h3 id="stat-pw" class="text-xl font-bold text-slate-800">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Action & Log Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Left Column: Form Absensi & Kamera -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                <div class="border-b border-slate-100 pb-4">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-camera text-blue-600"></i> Form Absensi Pegawai
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1">Lakukan verifikasi identitas dan ambil foto kehadiran.</p>
+                </div>
+
+                <form id="attendance-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nomor Induk Pegawai (NIP)</label>
+                        <input type="text" id="nip" required placeholder="Contoh: 198501012010011001" 
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Nama Lengkap & Gelar</label>
+                        <input type="text" id="nama" required placeholder="Masukkan Nama Lengkap" 
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Status Kepegawaian</label>
+                        <select id="status" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition">
+                            <option value="" disabled selected>Pilih Status Pegawai</option>
+                            <option value="PNS">PNS (Pegawai Negeri Sipil)</option>
+                            <option value="PPPK">PPPK</option>
+                            <option value="Penuh Waktu">Penuh Waktu</option>
+                            <option value="PPPK PW">PPPK PW (Paruh Waktu)</option>
+                        </select>
+                    </div>
+
+                    <!-- Camera Section -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase">Foto Diri (Swafoto)</label>
+                        <div class="relative bg-slate-900 rounded-xl overflow-hidden aspect-video flex items-center justify-center border border-slate-300">
+                            <video id="webcam" autoplay playsinline class="w-full h-full object-cover"></video>
+                            <canvas id="canvas" class="hidden"></canvas>
+                            <img id="photo-preview" src="" alt="Preview Foto" class="hidden w-full h-full object-cover absolute inset-0">
+                            <div id="camera-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-900/80">
+                                <i class="fa-solid fa-video-slash text-2xl mb-1"></i>
+                                <span class="text-xs">Kamera belum aktif</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 pt-1">
+                            <button type="button" id="start-camera" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-2 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-power-off"></i> Nyalakan Kamera
+                            </button>
+                            <button type="button" id="capture-photo" disabled class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-camera"></i> Ambil Foto
+                            </button>
+                        </div>
+                        <input type="hidden" id="photo-data" required>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl text-sm transition shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i> Kirim Absensi
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Column: Table Log & Filter -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6 flex flex-col">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-user text-blue-600"></i> Riwayat Kehadiran Pegawai
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1">Daftar pegawai Dukcapil Bangkep yang telah melakukan absensi hari ini.</p>
+                    </div>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <select id="filter-status" class="bg-slate-50 border border-slate-300 text-slate-700 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="ALL">Semua Status</option>
+                            <option value="PNS">PNS</option>
+                            <option value="PPPK">PPPK</option>
+                            <option value="Penuh Waktu">Penuh Waktu</option>
+                            <option value="PPPK PW">PPPK PW</option>
+                        </select>
+                        <button id="btn-export" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 whitespace-nowrap">
+                            <i class="fa-solid fa-file-excel"></i> Ekspor Data
+                        </button>
+                        <button id="btn-reset" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-medium px-3 py-2 rounded-xl transition border border-rose-200" title="Reset Semua Data">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="flex-grow overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-100/70 text-slate-600 text-xs uppercase font-semibold tracking-wider border-b border-slate-200">
+                                <th class="p-3">Foto</th>
+                                <th class="p-3">Waktu & Tanggal</th>
+                                <th class="p-3">NIP / Nama</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-table-body" class="divide-y divide-slate-100">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden flex-col items-center justify-center py-12 text-slate-400">
+                    <i class="fa-solid fa-folder-open text-4xl mb-2 text-slate-300"></i>
+                    <p class="text-sm font-medium">Belum ada data absensi tercatat.</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Silakan lakukan absensi menggunakan form di sebelah kiri.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-auto text-center text-xs text-slate-500">
+        <p>&copy; 2026 Dinas Kependudukan dan Pencatatan Sipil Kabupaten Banggai Kepulauan. All rights reserved.</p>
+    </footer>
+
+    <!-- Custom Modal for Details / Alerts -->
+    <div id="custom-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 id="modal-title" class="font-bold text-slate-800 text-base">Detail Absensi</h3>
+                <button id="modal-close" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div id="modal-content" class="space-y-3 text-sm">
+                <!-- Content injected dynamically -->
+            </div>
+            <div class="pt-2 flex justify-end">
+                <button id="modal-btn-ok" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // DOM Elements
+        const liveClock = document.getElementById('live-clock');
+        const liveDate = document.getElementById('live-date');
+        const webcam = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        const photoPreview = document.getElementById('photo-preview');
+        const cameraPlaceholder = document.getElementById('camera-placeholder');
+        const startCameraBtn = document.getElementById('start-camera');
+        const capturePhotoBtn = document.getElementById('capture-photo');
+        const photoDataInput = document.getElementById('photo-data');
+        const attendanceForm = document.getElementById('attendance-form');
+        const tableBody = document.getElementById('attendance-table-body');
+        const emptyState = document.getElementById('empty-state');
+        const filterStatus = document.getElementById('filter-status');
+        const btnReset = document.getElementById('btn-reset');
+        const btnExport = document.getElementById('btn-export');
+        const toastContainer = document.getElementById('toast-container');
+
+        // Modal Elements
+        const customModal = document.getElementById('custom-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('modal-content');
+        const modalClose = document.getElementById('modal-close');
+        const modalBtnOk = document.getElementById('modal-btn-ok');
+
+        let mediaStream = null;
+        let attendanceData = JSON.parse(localStorage.getItem('dukcapil_absensi')) || [];
+
+        // Live Clock & Date update
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            liveClock.textContent = `${hours}:${minutes}:${seconds} WITA`;
+
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            liveDate.textContent = now.toLocaleDateString('id-ID', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Toast notification system (replacement for alert)
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-blue-600';
+            const icon = type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info';
+            
+            toast.className = `${bgClass} text-white px-4 py-3 rounded-xl shadow-lg flex items-center space-x-3 text-sm font-medium transform translate-y-2 opacity-0 transition-all duration-300`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i><span>${message}</span>`;
+            
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // Camera Initialization
+        startCameraBtn.addEventListener('click', async () => {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
+                webcam.srcObject = mediaStream;
+                cameraPlaceholder.classList.add('hidden');
+                photoPreview.classList.add('hidden');
+                capturePhotoBtn.removeAttribute('disabled');
+                startCameraBtn.innerHTML = '<i class="fa-solid fa-check"></i> Kamera Aktif';
+                startCameraBtn.classList.remove('bg-slate-200', 'text-slate-700');
+                startCameraBtn.classList.add('bg-emerald-100', 'text-emerald-700');
+                showToast('Kamera berhasil diaktifkan.', 'info');
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal mengakses kamera. Periksa izin perangkat.', 'error');
+            }
+        });
+
+        // Capture Photo
+        capturePhotoBtn.addEventListener('click', () => {
+            if (!mediaStream) return;
+            canvas.width = webcam.videoWidth || 640;
+            canvas.height = webcam.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(webcam, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            
+            photoDataInput.value = dataUrl;
+            photoPreview.src = dataUrl;
+            photoPreview.classList.remove('hidden');
+            showToast('Foto berhasil diambil!');
+        });
+
+        // Form Submit
+        attendanceForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nip = document.getElementById('nip').value.trim();
+            const nama = document.getElementById('nama').value.trim();
+            const status = document.getElementById('status').value;
+            const photo = photoDataInput.value;
+
+            if (!photo) {
+                showToast('Harap ambil foto diri terlebih dahulu!', 'error');
+                return;
+            }
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+            const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ' WITA';
+            const timestamp = now.getTime();
+
+            const newRecord = {
+                id: timestamp,
+                nip,
+                nama,
+                status,
+                date: dateStr,
+                time: timeStr,
+                photo
+            };
+
+            attendanceData.unshift(newRecord);
+            localStorage.setItem('dukcapil_absensi', JSON.stringify(attendanceData));
+
+            renderTable();
+            updateStats();
+            attendanceForm.reset();
+            photoPreview.classList.add('hidden');
+            photoDataInput.value = '';
+            showToast(`Absensi atas nama ${nama} berhasil direkam!`);
+        });
+
+        // Status Badge Styling Helper
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'PNS': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                case 'PPPK': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                case 'Penuh Waktu': return 'bg-amber-50 text-amber-700 border-amber-200';
+                case 'PPPK PW': return 'bg-purple-50 text-purple-700 border-purple-200';
+                default: return 'bg-slate-50 text-slate-700 border-slate-200';
+            }
+        }
+
+        // Render Table Data
+        function renderTable() {
+            const filterVal = filterStatus.value;
+            const filteredData = attendanceData.filter(item => filterVal === 'ALL' || item.status === filterVal);
+
+            tableBody.innerHTML = '';
+            if (filteredData.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+            }
+
+            filteredData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/80 transition border-b border-slate-100 text-xs';
+                tr.innerHTML = `
+                    <td class="p-3">
+                        <img src="${item.photo}" alt="Foto" class="w-10 h-10 rounded-lg object-cover border border-slate-200 shadow-sm cursor-pointer" onclick="viewPhoto('${item.photo}', '${item.nama}')">
+                    </td>
+                    <td class="p-3">
+                        <div class="font-semibold text-slate-800">${item.time}</div>
+                        <div class="text-[11px] text-slate-500">${item.date}</div>
+                    </td>
+                    <td class="p-3">
+                        <div class="font-bold text-slate-900">${item.nama}</div>
+                        <div class="text-[11px] text-slate-500 font-mono">NIP: ${item.nip}</div>
+                    </td>
+                    <td class="p-3">
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold border ${getStatusBadge(item.status)}">${item.status}</span>
+                    </td>
+                    <td class="p-3 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button onclick="viewDetail(${item.id})" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition" title="Lihat Detail"><i class="fa-solid fa-eye"></i></button>
+                            <button onclick="deleteRecord(${item.id})" class="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg transition" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Update Statistics Counters
+        function updateStats() {
+            document.getElementById('stat-total').textContent = attendanceData.length;
+            document.getElementById('stat-pns').textContent = attendanceData.filter(i => i.status === 'PNS').length;
+            document.getElementById('stat-pppk').textContent = attendanceData.filter(i => i.status === 'PPPK').length;
+            document.getElementById('stat-penuh').textContent = attendanceData.filter(i => i.status === 'Penuh Waktu').length;
+            document.getElementById('stat-pw').textContent = attendanceData.filter(i => i.status === 'PPPK PW').length;
+        }
+
+        // Filter Change Event
+        filterStatus.addEventListener('change', renderTable);
+
+        // Delete Individual Record
+        window.deleteRecord = function(id) {
+            attendanceData = attendanceData.filter(i => i.id !== id);
+            localStorage.setItem('dukcapil_absensi', JSON.stringify(attendanceData));
+            renderTable();
+            updateStats();
+            showToast('Data absensi berhasil dihapus.', 'info');
+        }
+
+        // Reset All Data Button
+        btnReset.addEventListener('click', () => {
+            if (confirmClear()) {
+                attendanceData = [];
+                localStorage.removeItem('dukcapil_absensi');
+                renderTable();
+                updateStats();
+                showToast('Semua riwayat absensi telah dikosongkan.', 'info');
+            }
+        });
+
+        function confirmClear() {
+            return window.confirm("Apakah Anda yakin ingin menghapus seluruh riwayat absensi Dukcapil Bangkep?");
+        }
+
+        // View Photo Modal
+        window.viewPhoto = function(photoUrl, name) {
+            modalTitle.textContent = `Foto Absensi - ${name}`;
+            modalContent.innerHTML = `
+                <div class="flex flex-col items-center space-y-3">
+                    <img src="${photoUrl}" alt="Foto Absensi" class="rounded-xl max-h-72 w-full object-cover border border-slate-200 shadow">
+                    <p class="text-xs text-slate-500 text-center">Verifikasi swafoto pegawai saat melakukan presensi.</p>
+                </div>
+            `;
+            customModal.classList.remove('hidden');
+            customModal.classList.add('flex');
+        }
+
+        // View Detail Modal
+        window.viewDetail = function(id) {
+            const item = attendanceData.find(i => i.id === id);
+            if (!item) return;
+
+            modalTitle.textContent = `Detail Absensi Pegawai`;
+            modalContent.innerHTML = `
+                <div class="flex items-center space-x-4 mb-4">
+                    <img src="${item.photo}" alt="Foto" class="w-16 h-16 rounded-xl object-cover border border-slate-200 shadow">
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-base">${item.nama}</h4>
+                        <p class="text-xs font-mono text-slate-500">NIP: ${item.nip}</p>
+                        <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusBadge(item.status)}">${item.status}</span>
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-xs">
+                    <div class="flex justify-between"><span class="text-slate-500">Tanggal:</span><span class="font-medium text-slate-800">${item.date}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Waktu Absen:</span><span class="font-medium text-slate-800">${item.time}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Instansi:</span><span class="font-medium text-slate-800">Dukcapil Kab. Banggai Kepulauan</span></div>
+                </div>
+            `;
+            customModal.classList.remove('hidden');
+            customModal.classList.add('flex');
+        }
+
+        // Close Modal
+        modalClose.addEventListener('click', () => {
+            customModal.classList.add('hidden');
+            customModal.classList.remove('flex');
+        });
+        modalBtnOk.addEventListener('click', () => {
+            customModal.classList.add('hidden');
+            customModal.classList.remove('flex');
+        });
+
+        // Export Data simulation (CSV)
+        btnExport.addEventListener('click', () => {
+            if (attendanceData.length === 0) {
+                showToast('Tidak ada data untuk diekspor.', 'error');
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,NIP,Nama,Status,Tanggal,Waktu\n";
+            attendanceData.forEach(row => {
+                csvContent += `"${row.nip}","${row.nama}","${row.status}","${row.date}","${row.time}"\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "rekap_absensi_dukcapil_bangkep.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Data absensi berhasil diekspor ke format CSV.');
+        });
+
+        // Initial Load
+        renderTable();
+        updateStats();
+    </script>
+</body>
+</html>
